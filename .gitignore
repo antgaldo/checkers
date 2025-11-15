@@ -1,0 +1,19 @@
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+# Build
+build/
+target/
+
+# MacOS
+.DS_Store
+
+# Logs
+*.log
+
+# JAR/WAR/EAR
+*.jar
+*.war
+*.ear

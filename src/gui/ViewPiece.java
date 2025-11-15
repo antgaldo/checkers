@@ -1,0 +1,19 @@
+package gui;
+
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+
+public class ViewPiece extends StackPane {
+    private int row;
+    private int col;
+    private Circle piece;
+
+    public ViewPiece(Color color,int row,int col){
+        this.piece= new Circle(15,color);
+        this.getChildren().addAll(piece);
+        this.setPrefSize(30, 30);
+        this.row=row;
+        this.col=col;
+    }
+}
