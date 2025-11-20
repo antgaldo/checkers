@@ -15,7 +15,7 @@ public class Frame extends Application {
         primaryStage.setTitle("Checkers");
         primaryStage.setScene(scene);
         primaryStage.show();
-        game.viewstart();
+        game.initGame();
     }
 
     public static void main(String[] args){
