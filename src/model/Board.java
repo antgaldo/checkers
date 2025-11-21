@@ -5,6 +5,9 @@ import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 
+import static javafx.scene.paint.Color.BLACK;
+import static javafx.scene.paint.Color.WHITE;
+
 public class Board {
     private Piece[][] board;
     private ArrayList<Piece> black;
@@ -54,8 +57,8 @@ public class Board {
 
     public void setupBoard(){
         int index=11;
-        for(int i=0; i<8;i++){
-            for(int j=0; j<3;j++){
+        for(int i=0; i<3;i++){
+            for(int j=0; j<8;j++){
                 if((i+j)%2==0){
                     Piece w = white.get(index--);
                     w.setRow(i);
@@ -65,8 +68,8 @@ public class Board {
             }
         }
         index=11;
-        for(int i=0; i<8;i++){
-            for(int j=5; j<8;j++){
+        for(int i=5; i<8;i++){
+            for(int j=0; j<8;j++){
                 if((i+j)%2==0){
                     Piece b = black.get(index--);
                         b.setRow(i);
@@ -81,10 +84,43 @@ public class Board {
         return board[row][col];
     }
 
-    public void movePiece(Move move,Piece piece){
-        board[move.getOldRow()][move.getOldCol()] = null;
-        board[move.getRow()][move.getCol()] = piece;
-        piece.setRow(move.getRow());
-        piece.setCol(move.getCol());
+    public void movePiece(Move move,Piece piece) {
+        if(this.isMoveLegal(move,piece)){
+            board[piece.getRow()][piece.getCol()] = null;
+            board[move.getRow()][move.getCol()] = piece;
+            piece.setRow(move.getRow());
+            piece.setCol(move.getCol());
+        }
+    }
+
+    public boolean isMoveLegal(Move move,Piece piece) {
+        boolean valid=true;
+        if(piece.getColor() == WHITE){
+            valid= isLegalWhite(piece,move);
+        }
+        if(piece.getColor() == BLACK){
+            valid= isLegalBlack(piece,move);
+        }
+        //regole comuni tra white e black
+        if(piece.getCol()==move.getCol()) valid= false;
+        if(piece.getRow()==move.getRow()) valid=false;
+        return valid;
+    }
+
+    public boolean isLegalWhite(Piece piece,Move move){
+        boolean valid=true;
+        // evita il ritorno indietro
+        if(move.getRow() <= piece.getRow()) valid=false;
+        // evita di spostarsi piu di una casella
+        if((move.getRow()-piece.getRow())>=2) valid=false;
+        return valid;
+    }
+    public boolean isLegalBlack(Piece piece,Move move){
+        boolean valid=true;
+        // evita il ritorno indietro
+        if(move.getRow() >= piece.getRow()) valid=false;
+        // evita di spostarsi piu di una casella
+        if((piece.getRow()-move.getRow())>=2) valid=false;
+        return valid;
     }
 }

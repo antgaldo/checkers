@@ -1,31 +1,24 @@
 package game;
 
 import model.Board;
+import model.Piece;
+
+import static javafx.scene.paint.Color.BLACK;
+import static javafx.scene.paint.Color.WHITE;
 
 public class Move {
     private int row;
     private int col;
-    private int oldrow;
-    private int oldcol;
 
-    public Move(int oldrow, int oldcol, int row,int col){
-        this.oldrow=oldrow;
-        this.oldcol=oldcol;
+    public Move( int row,int col){
         this.row=row;
         this.col=col;
     }
 
-    public int getOldRow(){
-        return oldrow;
-    }
-    public int getOldCol(){
-        return oldcol;
-    }
     public int getRow(){
         return row;
     }
     public int getCol(){
         return col;
     }
-
 }
