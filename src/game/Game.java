@@ -1,6 +1,7 @@
 package game;
 
 import gui.ViewBoard;
+import gui.ViewPoint;
 import gui.ViewTable;
 import model.Board;
 import model.Piece;
@@ -12,6 +13,7 @@ public class Game implements Listener{
     private Board board;
     private ViewBoard viewboard;
     private ViewTable viewtable;
+    private ViewPoint viewpoint;
     private int turn;
     private Piece selectpiece;
 
@@ -19,6 +21,7 @@ public class Game implements Listener{
         this.viewboard= new ViewBoard();
         this.board= new Board();
         this.viewtable= new ViewTable();
+        this.viewpoint= new ViewPoint();
         this.turn=0;
         viewboard.setListener(this);
         initGame();
@@ -32,9 +35,14 @@ public class Game implements Listener{
         return viewtable;
     }
 
+    public ViewPoint getViewPoint(){
+        return viewpoint;
+    }
+
     public void initGame(){
         viewboard.viewstart(board);
         viewtable.setTextTurn((turn == 0 ? "Bianco" : "Nero"));
+        viewpoint.setCountPoint("Numero di Bianchi: " + board.getWhite().size() + "\n\nNumero di Neri: " + board.getBlack().size());
     }
 
     public void onPieceClick(Piece piece){

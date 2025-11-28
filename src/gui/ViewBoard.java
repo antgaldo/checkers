@@ -31,7 +31,7 @@ public class ViewBoard extends GridPane{
         this.setAlignment(Pos.CENTER);   // centro
         this.setAlignment(Pos.TOP_LEFT); // in alto a sinistra
         //this.setGridLinesVisible(true);
-        this.setPrefSize(800, 800);
+        //this.setPrefSize(800, 800);
     }
 
     public void viewstart(Board board){
