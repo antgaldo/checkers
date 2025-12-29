@@ -1,22 +1,20 @@
 package model;
 
-import game.Move;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
-
-import static javafx.scene.paint.Color.BLACK;
-import static javafx.scene.paint.Color.WHITE;
 
 public class Board {
     private Piece[][] board;
     private ArrayList<Piece> black;
     private ArrayList<Piece> white;
+    private int countcapture;
 
     public Board(){
         this.board= new Piece[8][8];
         this.black= new ArrayList<Piece>();
         this.white= new ArrayList<Piece>();
+        this.countcapture= 0;
         initPieces();
         setupBoard();
     }
@@ -25,22 +23,16 @@ public class Board {
         return board;
     }
 
-    public void printBoard() {
-        for (int r = 0; r < 8; r++) {
-            for (int c = 0; c < 8; c++) {
-                Piece p = board[r][c];
-                System.out.print(p == null ? "--- " : (p.getColor() == Color.WHITE ? "W " : "B "));
-            }
-            System.out.println();
-        }
-    }
-
     public int getRow(){
         return board.length;
     }
 
     public int getColumn(){
         return board[0].length;
+    }
+
+    public int getCountcapture(){
+        return countcapture;
     }
 
     private void initPieces() {
@@ -84,43 +76,106 @@ public class Board {
         return board[row][col];
     }
 
-    public void movePiece(Move move,Piece piece) {
-        if(this.isMoveLegal(move,piece)){
+    private void setBoxNull(int row, int col){
+        board[row][col]=null;
+    }
+
+    public boolean movePiece(Move move,Piece piece,int turn) {
+        boolean ok=true;
+        if(this.isMoveLegal(move,piece,turn)){
+            //se è una mossa cattura allora esegui
+            if ((Math.abs(move.getRow() - piece.getRow()) == 2) && (Math.abs(move.getCol() - piece.getCol()) == 2)){
+                int enemyRow= piece.getRow() + ((turn == 0) ? 1 : -1);
+                int enemyCol= (move.getCol() + piece.getCol()) / 2;
+                removePiece( turn ==0 ? black : white ,enemyRow,enemyCol);
+                setBoxNull(enemyRow, enemyCol);
+            }
+            //sposta la pedina
             board[piece.getRow()][piece.getCol()] = null;
             board[move.getRow()][move.getCol()] = piece;
             piece.setRow(move.getRow());
             piece.setCol(move.getCol());
-        }
+        } else ok=false;
+        return ok;
     }
 
-    public boolean isMoveLegal(Move move,Piece piece) {
-        boolean valid=true;
-        if(piece.getColor() == WHITE){
-            valid= isLegalWhite(piece,move);
+    public boolean isMoveLegal(Move move, Piece piece, int turn) {
+        //conta catture possibili
+        boolean canCapture = countCapture(piece, turn);
+        //se può catturare allora verifica se la mossa va bene
+        if (canCapture) {
+            return isCaptureMove(move, piece, turn);
         }
-        if(piece.getColor() == BLACK){
-            valid= isLegalBlack(piece,move);
+        return isLegalMove(piece, move, turn);
+    }
+
+
+    private boolean isCaptureMove(Move move, Piece piece, int turn) {
+        int direction = (turn == 0) ? 1 : -1;
+        if (Math.abs(move.getRow() - piece.getRow()) != 2) return false;
+        if (Math.abs(move.getCol() - piece.getCol()) != 2) return false;
+        int enemyRow = piece.getRow() + direction;
+        int enemyCol = (move.getCol() + piece.getCol()) / 2;
+        return checkCaptureDirection(piece, enemyRow, enemyCol, move.getRow(), move.getCol());
+    }
+
+
+    public boolean countCapture(Piece piece, int turn) {
+        countcapture = 0;
+        boolean canCapture = false;
+        int direction = (turn == 0) ? 1 : -1;
+        // diagonale sinistra
+        if (checkCaptureDirection(
+                piece,
+                piece.getRow() + direction,
+                piece.getCol() - 1,
+                piece.getRow() + 2 * direction,
+                piece.getCol() - 2)) {
+            countcapture++;
+            canCapture = true;
         }
-        //regole comuni tra white e black
-        if(piece.getCol()==move.getCol()) valid= false;
-        if(piece.getRow()==move.getRow()) valid=false;
+        // diagonale destra
+        if (checkCaptureDirection(
+                piece,
+                piece.getRow() + direction,
+                piece.getCol() + 1,
+                piece.getRow() + 2 * direction,
+                piece.getCol() + 2)) {
+            countcapture++;
+            canCapture = true;
+        }
+        return canCapture;
+    }
+
+    private boolean checkCaptureDirection(Piece piece, int enemyRow, int enemyCol, int landingRow, int landingCol) {
+        if (!isInside(enemyRow) || !isInside(enemyCol)) return false;
+        if (!isInside(landingRow) || !isInside(landingCol)) return false;
+        Piece enemy = getPiece(enemyRow, enemyCol);
+        if (enemy == null || enemy.getColor() == piece.getColor()) return false;
+        return getPiece(landingRow, landingCol) == null;
+    }
+
+    private boolean isInside(int number){
+        boolean valid=false;
+        if(number > 0 && number < 8)
+            valid=true;
         return valid;
     }
 
-    public boolean isLegalWhite(Piece piece,Move move){
-        boolean valid=true;
-        // evita il ritorno indietro
-        if(move.getRow() <= piece.getRow()) valid=false;
-        // evita di spostarsi piu di una casella
-        if((move.getRow()-piece.getRow())>=2) valid=false;
-        return valid;
+    private boolean isLegalMove(Piece piece, Move move, int turn) {
+        int direction = (turn == 0) ? 1 : -1;
+        boolean correctRow = (move.getRow() - piece.getRow()) == direction;
+        boolean correctCol = Math.abs(move.getCol() - piece.getCol()) == 1;
+        return correctRow && correctCol;
     }
-    public boolean isLegalBlack(Piece piece,Move move){
-        boolean valid=true;
-        // evita il ritorno indietro
-        if(move.getRow() >= piece.getRow()) valid=false;
-        // evita di spostarsi piu di una casella
-        if((piece.getRow()-move.getRow())>=2) valid=false;
-        return valid;
+
+    private void removePiece(ArrayList<Piece> list,int row,int col){
+        for (int i = 0; i < list.size(); i++) {
+            Piece p = list.get(i);
+            if (p.getRow() == row && p.getCol() == col) {
+                list.remove(i);
+                break;
+            }
+        }
     }
 }

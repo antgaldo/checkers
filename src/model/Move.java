@@ -1,10 +1,4 @@
-package game;
-
-import model.Board;
-import model.Piece;
-
-import static javafx.scene.paint.Color.BLACK;
-import static javafx.scene.paint.Color.WHITE;
+package model;
 
 public class Move {
     private int row;

@@ -38,6 +38,6 @@ public class Piece {
 
     @Override
     public String toString() {
-        return color == Color.WHITE ? "W" : "B";
+        return (color == Color.WHITE ? "W" : "B") + " row:" + row + "col" + col;
     }
 }
