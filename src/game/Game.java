@@ -63,12 +63,12 @@ public class Game implements Listener{
                 mustcapture=false;
                 //se dopo la mossa la pedina spostata è sotto attacco allora aggiorna lo stato mustcapture
                 //per obbligare l'avversario a mangiare
-                if(board.isCapturable(selectpiece,turn)){
+                if(board.checkisCapturable(turn)){
                     mustcapture=true;
                 }
+                if(!board.canCaptureMultiple(selectpiece,turn)) switchTurn();
                 System.out.println(mustcapture);
                 selectpiece = null;
-                switchTurn();
             } else viewboard.showAlert("","","Mossa non valida");
         }
     }

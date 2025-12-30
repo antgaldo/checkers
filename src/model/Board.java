@@ -128,27 +128,42 @@ public class Board {
         return getPiece(landingRow, landingCol) == null;
     }
 
-    //da verificare per ogni pedina
-    public boolean isCapturable(Piece piece,int turn){
+    //controlla se ci sono pedine catturabili partendo dall'ultima inserita
+    public boolean checkisCapturable(int turn){
+        ArrayList<Piece> array= turn==0 ? white: black;
+        for (int i = array.size() - 1; i >= 0; i--) {
+            if(isCapturable(array.get(i),turn)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    //controlla se c'è una pedina sotto attacco
+    private boolean isCapturable(Piece piece,int turn){
         int direction= turn==0 ? 1 : -1;
             if(!isInside(piece.getRow() +direction)) return false;
             int enemyRow = piece.getRow() +direction;
-            if(isInside(piece.getCol() -1) && isInside(piece.getCol() +1)){
+            if(isInside(piece.getCol() -1) && isInside(piece.getCol() +1) && isInside(piece.getRow() - 1) && isInside(piece.getRow() + 1)){
                 int enemyLeftCol = piece.getCol() -1;
                 int enemyRigthCol= piece.getCol() +1;
                 Piece enemyLeft= getPiece(enemyRow, enemyLeftCol);
                 Piece enemyRigth= getPiece(enemyRow, enemyRigthCol);
-                if((enemyLeft !=null && enemyLeft.getColor()== BLACK) && (getPiece(piece.getRow()-1, piece.getCol()+1) ==null)){
-                    return true;
+                if(turn==0) {
+                    if ((enemyLeft != null && enemyLeft.getColor() == BLACK) && (getPiece(piece.getRow() - 1, piece.getCol() + 1) == null)) {
+                        return true;
+                    }
+                    if ((enemyRigth != null && enemyRigth.getColor() == BLACK) && (getPiece(piece.getRow() - 1, piece.getCol() - 1) == null)) {
+                        return true;
+                    }
                 }
-                if((enemyRigth !=null && enemyRigth.getColor()== BLACK)&& (getPiece(piece.getRow()-1, piece.getCol()-1) ==null)){
-                    return true;
-                }
-                if((enemyLeft !=null && enemyLeft.getColor()== WHITE) && (getPiece(piece.getRow()+1, piece.getCol()+1) ==null)){
-                    return true;
-                }
-                if((enemyRigth !=null && enemyRigth.getColor()== WHITE)  && (getPiece(piece.getRow()+1, piece.getCol()-1) ==null)){
-                    return true;
+                if(turn==1) {
+                    if ((enemyLeft != null && enemyLeft.getColor() == WHITE) && (getPiece(piece.getRow() + 1, piece.getCol() + 1) == null)) {
+                        return true;
+                    }
+                    if ((enemyRigth != null && enemyRigth.getColor() == WHITE) && (getPiece(piece.getRow() + 1, piece.getCol() - 1) == null)) {
+                        return true;
+                    }
                 }
             }
         return false;
@@ -159,6 +174,41 @@ public class Board {
         if(number >= 0 && number < 8)
             valid=true;
         return valid;
+    }
+
+    public boolean canCaptureMultiple(Piece piece,int turn){
+        int direction = (turn==0) ?1 : -1;
+        if(turn==0){
+            if(!isInside(piece.getRow()+direction+1)) return false;
+            //se a destra c'è spazio di atterraggio e il nemico è nero
+            if(isInside(piece.getCol()+2)){
+                Piece enemyrigth= getPiece(piece.getRow()+direction,piece.getCol()+1);
+                if(enemyrigth != null && enemyrigth.getColor() == BLACK)
+                    return true;
+            }
+            //se a sinistra c'è spazio di atterraggio e il nemico è nero
+            if(isInside(piece.getCol()-2)){
+                Piece enemyleft= getPiece(piece.getRow()+direction,piece.getCol()-1);
+                if(enemyleft != null && enemyleft.getColor() == BLACK)
+                    return true;
+            }
+        }
+        if(turn==1){
+            if(!isInside(piece.getRow()+direction-1)) return false;
+            //se a destra c'è spazio di atterraggio e il nemico è bianco
+            if(isInside(piece.getCol()+2)){
+                Piece enemyrigth= getPiece(piece.getRow()+direction,piece.getCol()+1);
+                if(enemyrigth != null && enemyrigth.getColor() == WHITE)
+                    return true;
+            }
+            //se a sinistra c'è spazio di atterraggio e il nemico è bianco
+            if(isInside(piece.getCol()-2)){
+                Piece enemyrigth= getPiece(piece.getRow()+direction,piece.getCol()-1);
+                if(enemyrigth != null && enemyrigth.getColor() == WHITE)
+                    return true;
+            }
+        }
+        return false;
     }
 
     private boolean isLegalMove(Piece piece, Move move, int turn) {
