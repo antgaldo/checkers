@@ -4,6 +4,9 @@ import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 
+import static javafx.scene.paint.Color.BLACK;
+import static javafx.scene.paint.Color.WHITE;
+
 public class Board {
     private Piece[][] board;
     private ArrayList<Piece> black;
@@ -36,8 +39,8 @@ public class Board {
     }
 
     private void initPieces() {
-        for (int i = 0; i < 12; i++) white.add(new Piece(Color.WHITE));
-        for (int i = 0; i < 12; i++) black.add(new Piece(Color.BLACK));
+        for (int i = 0; i < 12; i++) white.add(new Piece(WHITE));
+        for (int i = 0; i < 12; i++) black.add(new Piece(BLACK));
     }
 
     public ArrayList<Piece> getWhite(){
@@ -80,9 +83,10 @@ public class Board {
         board[row][col]=null;
     }
 
-    public boolean movePiece(Move move,Piece piece,int turn) {
+    //da implementare catture multiple e controllora per ogni pedina se è possibile mangiare, sono le regole del gioco
+    public boolean movePiece(Move move,Piece piece,int turn,boolean mustcapture) {
         boolean ok=true;
-        if(this.isMoveLegal(move,piece,turn)){
+        if(this.isMoveLegal(move,piece,turn,mustcapture)){
             //se è una mossa cattura allora esegui
             if ((Math.abs(move.getRow() - piece.getRow()) == 2) && (Math.abs(move.getCol() - piece.getCol()) == 2)){
                 int enemyRow= piece.getRow() + ((turn == 0) ? 1 : -1);
@@ -99,16 +103,13 @@ public class Board {
         return ok;
     }
 
-    public boolean isMoveLegal(Move move, Piece piece, int turn) {
-        //conta catture possibili
-        boolean canCapture = countCapture(piece, turn);
+    public boolean isMoveLegal(Move move, Piece piece, int turn,boolean mustcapture) {
         //se può catturare allora verifica se la mossa va bene
-        if (canCapture) {
+        if (mustcapture) {
             return isCaptureMove(move, piece, turn);
         }
         return isLegalMove(piece, move, turn);
     }
-
 
     private boolean isCaptureMove(Move move, Piece piece, int turn) {
         int direction = (turn == 0) ? 1 : -1;
@@ -119,34 +120,6 @@ public class Board {
         return checkCaptureDirection(piece, enemyRow, enemyCol, move.getRow(), move.getCol());
     }
 
-
-    public boolean countCapture(Piece piece, int turn) {
-        countcapture = 0;
-        boolean canCapture = false;
-        int direction = (turn == 0) ? 1 : -1;
-        // diagonale sinistra
-        if (checkCaptureDirection(
-                piece,
-                piece.getRow() + direction,
-                piece.getCol() - 1,
-                piece.getRow() + 2 * direction,
-                piece.getCol() - 2)) {
-            countcapture++;
-            canCapture = true;
-        }
-        // diagonale destra
-        if (checkCaptureDirection(
-                piece,
-                piece.getRow() + direction,
-                piece.getCol() + 1,
-                piece.getRow() + 2 * direction,
-                piece.getCol() + 2)) {
-            countcapture++;
-            canCapture = true;
-        }
-        return canCapture;
-    }
-
     private boolean checkCaptureDirection(Piece piece, int enemyRow, int enemyCol, int landingRow, int landingCol) {
         if (!isInside(enemyRow) || !isInside(enemyCol)) return false;
         if (!isInside(landingRow) || !isInside(landingCol)) return false;
@@ -155,9 +128,35 @@ public class Board {
         return getPiece(landingRow, landingCol) == null;
     }
 
+    //da verificare per ogni pedina
+    public boolean isCapturable(Piece piece,int turn){
+        int direction= turn==0 ? 1 : -1;
+            if(!isInside(piece.getRow() +direction)) return false;
+            int enemyRow = piece.getRow() +direction;
+            if(isInside(piece.getCol() -1) && isInside(piece.getCol() +1)){
+                int enemyLeftCol = piece.getCol() -1;
+                int enemyRigthCol= piece.getCol() +1;
+                Piece enemyLeft= getPiece(enemyRow, enemyLeftCol);
+                Piece enemyRigth= getPiece(enemyRow, enemyRigthCol);
+                if((enemyLeft !=null && enemyLeft.getColor()== BLACK) && (getPiece(piece.getRow()-1, piece.getCol()+1) ==null)){
+                    return true;
+                }
+                if((enemyRigth !=null && enemyRigth.getColor()== BLACK)&& (getPiece(piece.getRow()-1, piece.getCol()-1) ==null)){
+                    return true;
+                }
+                if((enemyLeft !=null && enemyLeft.getColor()== WHITE) && (getPiece(piece.getRow()+1, piece.getCol()+1) ==null)){
+                    return true;
+                }
+                if((enemyRigth !=null && enemyRigth.getColor()== WHITE)  && (getPiece(piece.getRow()+1, piece.getCol()-1) ==null)){
+                    return true;
+                }
+            }
+        return false;
+    }
+
     private boolean isInside(int number){
         boolean valid=false;
-        if(number > 0 && number < 8)
+        if(number >= 0 && number < 8)
             valid=true;
         return valid;
     }

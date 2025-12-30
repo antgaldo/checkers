@@ -16,6 +16,7 @@ public class Game implements Listener{
     private ViewTable viewtable;
     private ViewPoint viewpoint;
     private int turn;
+    private boolean mustcapture;
     private Piece selectpiece;
 
     public Game(){
@@ -25,6 +26,7 @@ public class Game implements Listener{
         this.viewpoint= new ViewPoint();
         this.turn=0;
         viewboard.setListener(this);
+        this.mustcapture=false;
         initGame();
     }
 
@@ -47,16 +49,25 @@ public class Game implements Listener{
     }
 
     public void onPieceClick(Piece piece){
-        this.selectpiece = piece;
+        if((turn ==0 && piece.getColor()== WHITE) || (turn ==1 && piece.getColor()== BLACK)){
+            this.selectpiece = piece;
+        } else viewboard.showAlert("","","Sbagliato turno");
     }
 
     public void onBoxClick(int row, int col){
         if(selectpiece!=null) {
             Move move= new Move( row, col);
-            if(board.movePiece(move, selectpiece,turn)) {
+            if(board.movePiece(move, selectpiece,turn,mustcapture)) {
                 viewboard.viewstart(board);
-                selectpiece = null;
                 viewpoint.setCountPoint("Numero di Bianchi: " + board.getWhite().size() + "\n\nNumero di Neri: " + board.getBlack().size());
+                mustcapture=false;
+                //se dopo la mossa la pedina spostata è sotto attacco allora aggiorna lo stato mustcapture
+                //per obbligare l'avversario a mangiare
+                if(board.isCapturable(selectpiece,turn)){
+                    mustcapture=true;
+                }
+                System.out.println(mustcapture);
+                selectpiece = null;
                 switchTurn();
             } else viewboard.showAlert("","","Mossa non valida");
         }
