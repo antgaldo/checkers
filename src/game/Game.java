@@ -58,17 +58,20 @@ public class Game implements Listener{
         if(selectpiece!=null) {
             Move move= new Move( row, col);
             if(board.movePiece(move, selectpiece,turn,mustcapture)) {
+                board.promoteToKing(selectpiece,turn);
                 viewboard.viewstart(board);
                 viewpoint.setCountPoint("Numero di Bianchi: " + board.getWhite().size() + "\n\nNumero di Neri: " + board.getBlack().size());
                 mustcapture=false;
                 //se dopo la mossa la pedina spostata è sotto attacco allora aggiorna lo stato mustcapture
                 //per obbligare l'avversario a mangiare
-                if(board.checkisCapturable(turn)){
-                    mustcapture=true;
+                if(board.canCapture(selectpiece,turn) && board.getHasCapture()){
+                    mustcapture = true;
+                } else {
+                    selectpiece = null;
+                    mustcapture = board.checkisCapturable(turn);
+                    switchTurn();
                 }
-                if(!board.canCaptureMultiple(selectpiece,turn)) switchTurn();
-                System.out.println(mustcapture);
-                selectpiece = null;
+                //System.out.println(mustcapture);
             } else viewboard.showAlert("","","Mossa non valida");
         }
     }

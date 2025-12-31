@@ -11,13 +11,13 @@ public class Board {
     private Piece[][] board;
     private ArrayList<Piece> black;
     private ArrayList<Piece> white;
-    private int countcapture;
+    private boolean hasCapture;
 
     public Board(){
         this.board= new Piece[8][8];
         this.black= new ArrayList<Piece>();
         this.white= new ArrayList<Piece>();
-        this.countcapture= 0;
+        this.hasCapture= false;
         initPieces();
         setupBoard();
     }
@@ -34,8 +34,8 @@ public class Board {
         return board[0].length;
     }
 
-    public int getCountcapture(){
-        return countcapture;
+    public boolean getHasCapture(){
+        return hasCapture;
     }
 
     private void initPieces() {
@@ -83,9 +83,9 @@ public class Board {
         board[row][col]=null;
     }
 
-    //da implementare catture multiple e controllora per ogni pedina se è possibile mangiare, sono le regole del gioco
     public boolean movePiece(Move move,Piece piece,int turn,boolean mustcapture) {
         boolean ok=true;
+        hasCapture=false;
         if(this.isMoveLegal(move,piece,turn,mustcapture)){
             //se è una mossa cattura allora esegui
             if ((Math.abs(move.getRow() - piece.getRow()) == 2) && (Math.abs(move.getCol() - piece.getCol()) == 2)){
@@ -93,6 +93,7 @@ public class Board {
                 int enemyCol= (move.getCol() + piece.getCol()) / 2;
                 removePiece( turn ==0 ? black : white ,enemyRow,enemyCol);
                 setBoxNull(enemyRow, enemyCol);
+                hasCapture=true;
             }
             //sposta la pedina
             board[piece.getRow()][piece.getCol()] = null;
@@ -169,6 +170,15 @@ public class Board {
         return false;
     }
 
+    public void promoteToKing(Piece piece,int turn){
+        if(turn==0){
+            if(piece.getRow() == 7) piece.setIsKing();
+        }
+        if(turn==1){
+            if(piece.getRow() == 0) piece.setIsKing();
+        }
+    }
+
     private boolean isInside(int number){
         boolean valid=false;
         if(number >= 0 && number < 8)
@@ -176,36 +186,41 @@ public class Board {
         return valid;
     }
 
-    public boolean canCaptureMultiple(Piece piece,int turn){
+    public boolean canCapture(Piece piece,int turn){
         int direction = (turn==0) ?1 : -1;
         if(turn==0){
             if(!isInside(piece.getRow()+direction+1)) return false;
             //se a destra c'è spazio di atterraggio e il nemico è nero
             if(isInside(piece.getCol()+2)){
                 Piece enemyrigth= getPiece(piece.getRow()+direction,piece.getCol()+1);
-                if(enemyrigth != null && enemyrigth.getColor() == BLACK)
+                if(enemyrigth != null && enemyrigth.getColor() == BLACK && (getPiece(piece.getRow()+2,piece.getCol()+2)==null)) {
                     return true;
+                }
             }
             //se a sinistra c'è spazio di atterraggio e il nemico è nero
             if(isInside(piece.getCol()-2)){
                 Piece enemyleft= getPiece(piece.getRow()+direction,piece.getCol()-1);
-                if(enemyleft != null && enemyleft.getColor() == BLACK)
+                if(enemyleft != null && enemyleft.getColor() == BLACK && (getPiece(piece.getRow()+2,piece.getCol()-2)==null)) {
                     return true;
+                }
             }
         }
+        //non si vede il damone, da correggere
         if(turn==1){
             if(!isInside(piece.getRow()+direction-1)) return false;
             //se a destra c'è spazio di atterraggio e il nemico è bianco
             if(isInside(piece.getCol()+2)){
                 Piece enemyrigth= getPiece(piece.getRow()+direction,piece.getCol()+1);
-                if(enemyrigth != null && enemyrigth.getColor() == WHITE)
+                if(enemyrigth != null && enemyrigth.getColor() == WHITE && (getPiece(piece.getRow()-2,piece.getCol()+2)==null)) {
                     return true;
+                }
             }
             //se a sinistra c'è spazio di atterraggio e il nemico è bianco
             if(isInside(piece.getCol()-2)){
                 Piece enemyrigth= getPiece(piece.getRow()+direction,piece.getCol()-1);
-                if(enemyrigth != null && enemyrigth.getColor() == WHITE)
+                if(enemyrigth != null && enemyrigth.getColor() == WHITE && getPiece(piece.getRow()-2,piece.getCol()-2)==null ){
                     return true;
+                    }
             }
         }
         return false;

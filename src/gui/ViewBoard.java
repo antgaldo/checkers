@@ -39,13 +39,13 @@ public class ViewBoard extends GridPane{
         for(int i=0; i< board.getRow();i++){
             for(int j=0; j< board.getColumn(); j++){
                 Rectangle rectangle = new Rectangle(50, 50);
-                if ((i + j) % 2 == 0) rectangle.setFill(Color.BURLYWOOD);
-                else rectangle.setFill(Color.ANTIQUEWHITE);
+                if ((i + j) % 2 == 0) rectangle.setFill(Color.rgb(246, 219, 192));
+                else rectangle.setFill(Color.rgb(160, 113, 89));
                 this.add(rectangle, j, i);
                 Piece piece= board.getPiece(i,j);
                 if(piece!=null){
-                    ViewPiece viewpiece= new ViewPiece(piece.getColor());
-                    this.add(viewpiece, j,i);
+                    ViewPiece viewpiece = new ViewPiece(piece.getColor());
+                    this.add(!piece.getisKing() ? viewpiece : new ViewKing(piece.getColor()) , j,i);
                     if(listener!=null){
                         viewpiece.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
                             if (event.getButton() == MouseButton.PRIMARY) {

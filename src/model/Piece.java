@@ -6,11 +6,13 @@ public class Piece {
     private int row;
     private int col;
     private Color color;
+    private boolean isking;
 
     public Piece(int row, int col, Color color){
         this.row=row;
         this.col=col;
         this.color=color;
+        this.isking=false;
     }
     public Piece(Color color){
         this.color=color;
@@ -24,6 +26,10 @@ public class Piece {
         return col;
     }
 
+    public boolean getisKing(){
+        return isking;
+    }
+
     public void setRow(int row) {
         this.row = row;
     }
@@ -32,12 +38,16 @@ public class Piece {
         this.col = col;
     }
 
+    public void setIsKing(){
+        this.isking=true;
+    }
+
     public Color getColor(){
         return color;
     }
 
     @Override
     public String toString() {
-        return (color == Color.WHITE ? "W" : "B") + " row:" + row + "col" + col;
+        return (color == Color.WHITE ? "W" : "B") + " row:" + row + "col" + col + "king" + isking;
     }
 }
