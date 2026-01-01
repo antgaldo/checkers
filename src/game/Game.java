@@ -51,6 +51,7 @@ public class Game implements Listener{
     public void onPieceClick(Piece piece){
         if((turn ==0 && piece.getColor()== WHITE) || (turn ==1 && piece.getColor()== BLACK)){
             this.selectpiece = piece;
+            //System.out.println("damone");
         } else viewboard.showAlert("","","Sbagliato turno");
     }
 
@@ -58,7 +59,6 @@ public class Game implements Listener{
         if(selectpiece!=null) {
             Move move= new Move( row, col);
             if(board.movePiece(move, selectpiece,turn,mustcapture)) {
-                board.promoteToKing(selectpiece,turn);
                 viewboard.viewstart(board);
                 viewpoint.setCountPoint("Numero di Bianchi: " + board.getWhite().size() + "\n\nNumero di Neri: " + board.getBlack().size());
                 mustcapture=false;
@@ -69,9 +69,9 @@ public class Game implements Listener{
                 } else {
                     selectpiece = null;
                     mustcapture = board.checkisCapturable(turn);
+                    //System.out.println(mustcapture);
                     switchTurn();
                 }
-                //System.out.println(mustcapture);
             } else viewboard.showAlert("","","Mossa non valida");
         }
     }

@@ -7,12 +7,12 @@ import javafx.scene.shape.Circle;
 
 import static javafx.scene.paint.Color.WHITE;
 
-public class ViewKing extends StackPane {
+public class ViewKing extends ViewPiece  {
 
     private static final double RADIUS = 15;
 
     public ViewKing(Color baseColor) {
-
+        super(baseColor);
         // Disco inferiore
         Circle base = new Circle(RADIUS);
         base.setFill(baseColor.darker());

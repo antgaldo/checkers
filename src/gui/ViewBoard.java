@@ -44,10 +44,15 @@ public class ViewBoard extends GridPane{
                 this.add(rectangle, j, i);
                 Piece piece= board.getPiece(i,j);
                 if(piece!=null){
-                    ViewPiece viewpiece = new ViewPiece(piece.getColor());
-                    this.add(!piece.getisKing() ? viewpiece : new ViewKing(piece.getColor()) , j,i);
+                    ViewPiece viewNode;
+                    if (piece.getisKing()) {
+                        viewNode = new ViewKing(piece.getColor());
+                    } else {
+                        viewNode = new ViewPiece(piece.getColor());
+                    }
+                    this.add( viewNode, j,i);
                     if(listener!=null){
-                        viewpiece.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+                        viewNode.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
                             if (event.getButton() == MouseButton.PRIMARY) {
                                 listener.onPieceClick(piece);
                                 event.consume();

@@ -89,7 +89,8 @@ public class Board {
         if(this.isMoveLegal(move,piece,turn,mustcapture)){
             //se è una mossa cattura allora esegui
             if ((Math.abs(move.getRow() - piece.getRow()) == 2) && (Math.abs(move.getCol() - piece.getCol()) == 2)){
-                int enemyRow= piece.getRow() + ((turn == 0) ? 1 : -1);
+                //se è una pedina normale valuta la direzione , se è damone no
+                int enemyRow= piece.getisKing() ? (piece.getRow() + move.getRow()) / 2 : piece.getRow() + ((turn == 0) ? 1 : -1);
                 int enemyCol= (move.getCol() + piece.getCol()) / 2;
                 removePiece( turn ==0 ? black : white ,enemyRow,enemyCol);
                 setBoxNull(enemyRow, enemyCol);
@@ -100,6 +101,8 @@ public class Board {
             board[move.getRow()][move.getCol()] = piece;
             piece.setRow(move.getRow());
             piece.setCol(move.getCol());
+            //verifica se la pedina è diventata Dama
+            this.promoteToKing(piece,turn);
         } else ok=false;
         return ok;
     }
@@ -112,24 +115,29 @@ public class Board {
         return isLegalMove(piece, move, turn);
     }
 
+    //verifica se è una mossa cattura
     private boolean isCaptureMove(Move move, Piece piece, int turn) {
         int direction = (turn == 0) ? 1 : -1;
         if (Math.abs(move.getRow() - piece.getRow()) != 2) return false;
         if (Math.abs(move.getCol() - piece.getCol()) != 2) return false;
-        int enemyRow = piece.getRow() + direction;
+        int enemyRow= piece.getisKing() ? (piece.getRow() + move.getRow()) / 2 : piece.getRow() + direction;
         int enemyCol = (move.getCol() + piece.getCol()) / 2;
         return checkCaptureDirection(piece, enemyRow, enemyCol, move.getRow(), move.getCol());
     }
 
+    //verifica se una cattura è possibile
     private boolean checkCaptureDirection(Piece piece, int enemyRow, int enemyCol, int landingRow, int landingCol) {
+        //controlla limiti della scacchiera
         if (!isInside(enemyRow) || !isInside(enemyCol)) return false;
         if (!isInside(landingRow) || !isInside(landingCol)) return false;
+        //verifica se è un nemico
         Piece enemy = getPiece(enemyRow, enemyCol);
         if (enemy == null || enemy.getColor() == piece.getColor()) return false;
+        //verifica se c'è spazio di atterraggio
         return getPiece(landingRow, landingCol) == null;
     }
 
-    //controlla se ci sono pedine catturabili partendo dall'ultima inserita
+    //controlla se ci sono pedine catturabili partendo dall'ultima inserita nella lista
     public boolean checkisCapturable(int turn){
         ArrayList<Piece> array= turn==0 ? white: black;
         for (int i = array.size() - 1; i >= 0; i--) {
@@ -140,37 +148,50 @@ public class Board {
         return false;
     }
 
+    //verifica se il nemico puo catturare
+    private boolean canEnemyCapture(Piece piece, int enemyRow, int enemyCol, int landingRow, int landingCol, int turn) {
+        // se il nemico è una dama e c'è spazio di atterraggio allora sotto attacco
+        if (getPiece(enemyRow,enemyCol).getisKing() && getPiece(landingRow,landingCol) == null) return true; // la dama attacca sempre
+        // altrimenti è una pedina normale, controlla la direzione
+        if(!getPiece(enemyRow,enemyCol).getisKing()) {
+            if(piece.getisKing()) return false;
+            int direction = (turn == 0) ? 1 : -1;
+            //verifica direzione, spazio di atterraggio e se è una dama normale
+            return ((enemyRow == piece.getRow() + direction) && getPiece(landingRow, landingCol) == null);
+        }
+        return false;
+    }
+
     //controlla se c'è una pedina sotto attacco
-    private boolean isCapturable(Piece piece,int turn){
-        int direction= turn==0 ? 1 : -1;
-            if(!isInside(piece.getRow() +direction)) return false;
-            int enemyRow = piece.getRow() +direction;
-            if(isInside(piece.getCol() -1) && isInside(piece.getCol() +1) && isInside(piece.getRow() - 1) && isInside(piece.getRow() + 1)){
-                int enemyLeftCol = piece.getCol() -1;
-                int enemyRigthCol= piece.getCol() +1;
-                Piece enemyLeft= getPiece(enemyRow, enemyLeftCol);
-                Piece enemyRigth= getPiece(enemyRow, enemyRigthCol);
-                if(turn==0) {
-                    if ((enemyLeft != null && enemyLeft.getColor() == BLACK) && (getPiece(piece.getRow() - 1, piece.getCol() + 1) == null)) {
-                        return true;
-                    }
-                    if ((enemyRigth != null && enemyRigth.getColor() == BLACK) && (getPiece(piece.getRow() - 1, piece.getCol() - 1) == null)) {
-                        return true;
-                    }
-                }
-                if(turn==1) {
-                    if ((enemyLeft != null && enemyLeft.getColor() == WHITE) && (getPiece(piece.getRow() + 1, piece.getCol() + 1) == null)) {
-                        return true;
-                    }
-                    if ((enemyRigth != null && enemyRigth.getColor() == WHITE) && (getPiece(piece.getRow() + 1, piece.getCol() - 1) == null)) {
-                        return true;
-                    }
+    public boolean isCapturable(Piece piece,int turn){
+            int[] dirRow={1,-1};
+            int[] dirCol={1,-1};
+            int enemyRow;
+            int enemyCol;
+            int landingRow;
+            int landingCol;
+            //se è dama controlliamo tutte e 4 le direzioni
+            for (int dirrow : dirRow) {
+                enemyRow = piece.getRow() + dirrow;
+                if (!isInside(enemyRow)) continue;
+                for (int dircol : dirCol) {
+                    enemyCol = piece.getCol() + dircol;
+                    if (!isInside(enemyCol)) continue;
+                    //se esiste un nemico
+                    if((getPiece(enemyRow,enemyCol) == null)) continue;
+                    if((getPiece(enemyRow,enemyCol).getColor() == piece.getColor())) continue;
+                    landingRow = piece.getRow() - dirrow;
+                    landingCol = piece.getCol() - dircol;
+                    if (!isInside(landingRow) || !isInside(landingCol)) continue;
+                    //System.out.println(enemyRow + " " + enemyCol+ " " + landingRow + " " + landingCol);
+                    if(canEnemyCapture(piece, enemyRow, enemyCol, landingRow, landingCol,turn)) return true;
                 }
             }
         return false;
     }
 
-    public void promoteToKing(Piece piece,int turn){
+    //verifica se una pedina è diventata Damone
+    private void promoteToKing(Piece piece,int turn){
         if(turn==0){
             if(piece.getRow() == 7) piece.setIsKing();
         }
@@ -179,6 +200,7 @@ public class Board {
         }
     }
 
+    //verifica se una pedina è dentro la scacchiera
     private boolean isInside(int number){
         boolean valid=false;
         if(number >= 0 && number < 8)
@@ -186,53 +208,58 @@ public class Board {
         return valid;
     }
 
-    public boolean canCapture(Piece piece,int turn){
-        int direction = (turn==0) ?1 : -1;
-        if(turn==0){
-            if(!isInside(piece.getRow()+direction+1)) return false;
-            //se a destra c'è spazio di atterraggio e il nemico è nero
-            if(isInside(piece.getCol()+2)){
-                Piece enemyrigth= getPiece(piece.getRow()+direction,piece.getCol()+1);
-                if(enemyrigth != null && enemyrigth.getColor() == BLACK && (getPiece(piece.getRow()+2,piece.getCol()+2)==null)) {
-                    return true;
-                }
-            }
-            //se a sinistra c'è spazio di atterraggio e il nemico è nero
-            if(isInside(piece.getCol()-2)){
-                Piece enemyleft= getPiece(piece.getRow()+direction,piece.getCol()-1);
-                if(enemyleft != null && enemyleft.getColor() == BLACK && (getPiece(piece.getRow()+2,piece.getCol()-2)==null)) {
-                    return true;
-                }
-            }
+    //verifica se la pedina puo catturare
+    private boolean canPieceCapture(Piece piece, int enemyRow, int enemyCol, int landingRow, int landingCol, int turn) {
+        //se piece è una dama puo mangiare tutto
+        if (piece.getisKing() && getPiece(landingRow,landingCol) == null) return true;
+        // altrimenti è una pedina normale, controlla la direzione
+        if(!piece.getisKing() && !getPiece(enemyRow,enemyCol).getisKing()) {
+            int direction = (turn == 0) ? 1 : -1;
+            //verifica direzione, spazio di atterraggio e se è una dama normale
+            return ((enemyRow == piece.getRow() + direction) && getPiece(landingRow, landingCol) == null);
         }
-        //non si vede il damone, da correggere
-        if(turn==1){
-            if(!isInside(piece.getRow()+direction-1)) return false;
-            //se a destra c'è spazio di atterraggio e il nemico è bianco
-            if(isInside(piece.getCol()+2)){
-                Piece enemyrigth= getPiece(piece.getRow()+direction,piece.getCol()+1);
-                if(enemyrigth != null && enemyrigth.getColor() == WHITE && (getPiece(piece.getRow()-2,piece.getCol()+2)==null)) {
-                    return true;
-                }
-            }
-            //se a sinistra c'è spazio di atterraggio e il nemico è bianco
-            if(isInside(piece.getCol()-2)){
-                Piece enemyrigth= getPiece(piece.getRow()+direction,piece.getCol()-1);
-                if(enemyrigth != null && enemyrigth.getColor() == WHITE && getPiece(piece.getRow()-2,piece.getCol()-2)==null ){
-                    return true;
-                    }
+        return false;
+    }
+
+    //verifica se c'è possibilità di cattura
+    public boolean canCapture(Piece piece,int turn) {
+        int[] dirRow = {2, -2};
+        int[] dirCol = {2, -2};
+        int landingRow;
+        int landingCol;
+        int enemyRow;
+        int enemyCol;
+        for (int dirrow : dirRow) {
+            landingRow = piece.getRow() + dirrow;
+            if (!isInside(landingRow)) continue;
+            enemyRow = piece.getRow() + dirrow / 2;
+            for (int dircol : dirCol) {
+                landingCol = piece.getCol() + dircol;
+                if (!isInside(landingCol)) continue;
+                enemyCol = piece.getCol() + dircol / 2;
+                if ((getPiece(landingRow, landingCol) != null)) continue;
+                if ((getPiece(enemyRow, enemyCol) == null)) continue;
+                if ((getPiece(enemyRow, enemyCol).getColor() == piece.getColor())) continue;
+                if (canPieceCapture(piece, enemyRow, enemyCol, landingRow, landingCol, turn)) return true;
             }
         }
         return false;
     }
 
+    //verifica se la mossa è lecita
     private boolean isLegalMove(Piece piece, Move move, int turn) {
         int direction = (turn == 0) ? 1 : -1;
-        boolean correctRow = (move.getRow() - piece.getRow()) == direction;
+        boolean correctRow;
+        if(piece.getisKing()){
+            correctRow = Math.abs(move.getRow() - piece.getRow()) == 1;
+        } else {
+            correctRow = (move.getRow() - piece.getRow()) == direction;
+        }
         boolean correctCol = Math.abs(move.getCol() - piece.getCol()) == 1;
         return correctRow && correctCol;
     }
 
+    //manca: catture per il damone e che una pedina non puo mangiare un damone
     private void removePiece(ArrayList<Piece> list,int row,int col){
         for (int i = 0; i < list.size(); i++) {
             Piece p = list.get(i);
