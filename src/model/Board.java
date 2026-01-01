@@ -259,7 +259,6 @@ public class Board {
         return correctRow && correctCol;
     }
 
-    //manca: catture per il damone e che una pedina non puo mangiare un damone
     private void removePiece(ArrayList<Piece> list,int row,int col){
         for (int i = 0; i < list.size(); i++) {
             Piece p = list.get(i);
@@ -268,5 +267,94 @@ public class Board {
                 break;
             }
         }
+    }
+
+    //FUNZIONI PER L'AI; manca gestione delle catture multiple
+
+    //Crea una lista con tutte le mosse possibili per il giocatore
+    public ArrayList<Move> generateMoves(int turn) {
+        ArrayList<Move> listmove= new ArrayList<>();
+        ArrayList<Piece> pieces = (turn == 0) ? white : black;
+        boolean captureExists=false;
+
+        //verifica se mossa cattura
+        for(Piece piece: pieces){
+            if(canCapture(piece,turn)){
+                captureExists= true;
+                break;
+            }
+        }
+
+        //se mossa cattura aggiungi alla lista
+        for(Piece piece: pieces) {
+            if (captureExists) {
+                ArrayList<Move> pieceMoves = getMoveCapture(piece, turn);
+                listmove.addAll(pieceMoves);
+            } else {
+                ArrayList<Move> pieceMoves = getSimpleMoves(piece, turn);
+                listmove.addAll(pieceMoves);
+            }
+        }
+
+        return listmove;
+    }
+
+    //restituisci una mossa semplice
+    public ArrayList<Move> getSimpleMoves(Piece piece,int turn){
+        ArrayList coordinate= new ArrayList<Move>();
+        int[] dirRow = {1, -1};
+        int[] dirCol = {1, -1};
+        int landingRow;
+        int landingCol;
+        for (int dirrow : dirRow) {
+            landingRow = piece.getRow() + dirrow;
+            if (!isInside(landingRow)) continue;
+            for (int dircol : dirCol) {
+                landingCol = piece.getCol() + dircol;
+                if (!isInside(landingCol)) continue;
+                if ((getPiece(landingRow, landingCol) != null)) continue;
+                if (canPieceMove(piece, landingRow, landingCol, turn)){
+                    coordinate.add(new Move(piece,false,landingRow, landingCol));
+                }
+            }
+        }
+        return coordinate;
+    }
+
+    //verifica se lecita la mossa semplice
+    private boolean canPieceMove(Piece piece, int landingRow, int landingCol, int turn) {
+        int direction = (turn == 0) ? 1 : -1;
+        if(piece.getisKing()) return true;
+        if((piece.getColor()== WHITE) && landingRow>piece.getRow()) return true;
+        if((piece.getColor()== BLACK) && landingRow<piece.getRow()) return true;
+        return false;
+    }
+
+    //restituisci le coordinate di cattura
+    public ArrayList<Move> getMoveCapture(Piece piece,int turn) {
+        ArrayList coordinate= new ArrayList<Move>();
+        int[] dirRow = {2, -2};
+        int[] dirCol = {2, -2};
+        int landingRow;
+        int landingCol;
+        int enemyRow;
+        int enemyCol;
+        for (int dirrow : dirRow) {
+            landingRow = piece.getRow() + dirrow;
+            if (!isInside(landingRow)) continue;
+            enemyRow = piece.getRow() + dirrow / 2;
+            for (int dircol : dirCol) {
+                landingCol = piece.getCol() + dircol;
+                if (!isInside(landingCol)) continue;
+                enemyCol = piece.getCol() + dircol / 2;
+                if ((getPiece(landingRow, landingCol) != null)) continue;
+                if ((getPiece(enemyRow, enemyCol) == null)) continue;
+                if ((getPiece(enemyRow, enemyCol).getColor() == piece.getColor())) continue;
+                if (canPieceCapture(piece, enemyRow, enemyCol, landingRow, landingCol, turn)){
+                    coordinate.add(new Move(piece,true,landingRow, landingCol));
+                }
+            }
+        }
+        return coordinate;
     }
 }
