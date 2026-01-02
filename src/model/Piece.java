@@ -38,8 +38,8 @@ public class Piece {
         this.col = col;
     }
 
-    public void setIsKing(){
-        this.isking=true;
+    public void setIsKing(boolean value) {
+        this.isking = value;
     }
 
     public Color getColor(){

@@ -7,7 +7,11 @@ public class Move {
     private boolean isCapture;
     private int row;
     private int col;
+    private int startRow;
+    private int startCol;
     private ArrayList<Piece> capturedPieces = new ArrayList<>();
+    //ci occorre per poter tornare indietro
+    private boolean promoted = false;
 
     //Per Utente
     public Move( int row,int col){
@@ -16,23 +20,22 @@ public class Move {
     }
 
     //Per AI
-    public Move(Piece piece,boolean isCapture, int row,int col,int protectingSomeone){
-        this.piece=piece;
-        this.isCapture=isCapture;
-        this.row=row;
-        this.col=col;
-    }
     public Move(Piece piece,boolean isCapture, int row,int col){
         this.piece=piece;
         this.isCapture=isCapture;
         this.row=row;
         this.col=col;
+
+        //occorre per undoMove e makeMove, altrimenti non possiamo tornare indietro
+        this.startRow = piece.getRow();
+        this.startCol = piece.getCol();
     }
 
     public void addCapturedPiece(Piece p) {
         this.capturedPieces.add(p);
     }
 
+    //Lista dei nemici eliminati
     public ArrayList<Piece> getCapturedPieces() {
         return capturedPieces;
     }
@@ -42,5 +45,15 @@ public class Move {
     }
     public int getCol(){
         return col;
+    }
+    public int getStartRow() { return startRow; }
+    public int getStartCol() { return startCol; }
+    public Piece getPiece(){return piece; }
+    public boolean getIsCapture(){
+        return isCapture;
+    }
+    public boolean getPromoted(){return promoted;}
+    public void setPromoted(boolean promoted){
+        this.promoted=promoted;
     }
 }
