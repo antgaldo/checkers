@@ -16,6 +16,12 @@ public class Move {
     }
 
     //Per AI
+    public Move(Piece piece,boolean isCapture, int row,int col,int protectingSomeone){
+        this.piece=piece;
+        this.isCapture=isCapture;
+        this.row=row;
+        this.col=col;
+    }
     public Move(Piece piece,boolean isCapture, int row,int col){
         this.piece=piece;
         this.isCapture=isCapture;

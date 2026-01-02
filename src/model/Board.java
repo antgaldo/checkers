@@ -208,7 +208,7 @@ public class Board {
         return valid;
     }
 
-    //verifica se la pedina puo catturare
+    //funzione di supporto per canCapture
     private boolean canPieceCapture(Piece piece, int enemyRow, int enemyCol, int landingRow, int landingCol, int turn) {
         //se piece è una dama puo mangiare tutto
         if (piece.getisKing() && getPiece(landingRow,landingCol) == null) return true;
