@@ -286,6 +286,7 @@ public class Board {
         }
 
         //se mossa cattura aggiungi alla lista
+        //(le mosse di cattura multiple sono atomiche quindi la funzione getMoveCapture restituisce solo il move finale
         for(Piece piece: pieces) {
             if (captureExists) {
                 ArrayList<Move> pieceMoves = getMoveCapture(piece, turn);
@@ -332,9 +333,11 @@ public class Board {
 
     //restituisci le coordinate di cattura
     public ArrayList<Move> getMoveCapture(Piece piece,int turn) {
-        ArrayList coordinate= new ArrayList<Move>();
+        ArrayList coordinate = new ArrayList<Move>();
         int[] dirRow = {2, -2};
         int[] dirCol = {2, -2};
+        int startrow= piece.getRow();
+        int startcol= piece.getCol();
         int landingRow;
         int landingCol;
         int enemyRow;
@@ -350,8 +353,43 @@ public class Board {
                 if ((getPiece(landingRow, landingCol) != null)) continue;
                 if ((getPiece(enemyRow, enemyCol) == null)) continue;
                 if ((getPiece(enemyRow, enemyCol).getColor() == piece.getColor())) continue;
-                if (canPieceCapture(piece, enemyRow, enemyCol, landingRow, landingCol, turn)){
-                    coordinate.add(new Move(piece,true,landingRow, landingCol));
+                if (canPieceCapture(piece, enemyRow, enemyCol, landingRow, landingCol, turn)) {
+
+                    //Simulazione per verificare se ci sono altre possibili mangiate dopo la prima
+
+                    //rimozione del nemico mangiato e sposto la pedina in avanti
+                    Piece enemy = getPiece(enemyRow, enemyCol);
+                    board[enemyRow][enemyCol] = null;
+                    piece.setRow(landingRow);
+                    piece.setCol(landingCol);
+
+                    //Chiamata ricorsiva per vedere se ci sono altre possibili catture
+                    //Controlliamo se da questa nuova posizione può mangiare ancora
+                    ArrayList<Move> nextMoves = getMoveCapture(piece, turn);
+
+                    //Se la lista è vuota vuol dire che non può più mangiare
+                    if (nextMoves.isEmpty()) {
+                        // Aggiungo questa casella come destinazione finale.
+                        Move finalMove = new Move(piece, true, landingRow, landingCol);
+                        finalMove.addCapturedPiece(enemy);
+                        coordinate.add(finalMove);
+                    } else {
+                        // BIVIO O CONTINUAZIONE: la ricorsione ha trovato la fine della strada
+                        // (o delle strade). Devo riportarle tutte su all'IA.
+                        for (Move m : nextMoves) {
+                            // Creiamo la mossa atomica che arriva alla destinazione finale
+                            Move atomicMove = new Move(piece, true, m.getRow(), m.getCol());
+                            // Copiamo tutti i pezzi mangiati nei salti successivi futuri
+                            atomicMove.getCapturedPieces().addAll(m.getCapturedPieces());
+                            // Aggiungiamo il nemico mangiato in QUESTO salto specifico
+                            atomicMove.addCapturedPiece(enemy);
+                            coordinate.add(atomicMove);
+                        }
+                    }
+                    //Ripristino della posizione iniziale della pedina e del nemico
+                    piece.setRow(startrow);
+                    piece.setCol(startcol);
+                    board[enemyRow][enemyCol] = enemy;
                 }
             }
         }
