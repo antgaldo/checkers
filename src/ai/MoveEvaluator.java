@@ -6,12 +6,14 @@ import model.Piece;
 import static javafx.scene.paint.Color.WHITE;
 
 public class MoveEvaluator {
+
     private Board board;
+
     public MoveEvaluator(Board board){
         this.board=board;
     }
 
-    //funzione per stimare la bontà di uno stato
+    //funzione per stimare la bontà di uno stato (UTILITY)
     public int evaluator(Board board){
         //Assegniamo un valore alto di vittoria in modo tale da avere priorità assoluta sul resto
         if (board.getWhite().isEmpty()) return -1000000;
