@@ -33,6 +33,8 @@ public class MoveEvaluator {
             whiteScore+= isProtectingSomeone(piece,board,0);
             //Calcoliamo la distanza per diventare dama ed assegniamo 10 punti per ogni riga avanzata
             whiteScore+=getPromotionBonus(piece);
+            //Se hai più scelte del nero aggiungi 50 punti
+            if(board.generateMoves(0).size()>board.generateMoves(1).size())  whiteScore+= 50;
         }
         for(Piece piece: board.getBlack()){
             if(piece.getisKing()) blackScore+=300;
@@ -40,6 +42,7 @@ public class MoveEvaluator {
             if(piece.getRow()==7) blackScore+=30;
             blackScore+= isProtectingSomeone(piece,board,1);
             blackScore+=getPromotionBonus(piece);
+            if(board.generateMoves(1).size()>board.generateMoves(0).size())  whiteScore+= 50;
         }
 
         return whiteScore-blackScore;

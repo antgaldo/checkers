@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.scene.paint.Color.WHITE;
 
-public class Board {
+public class Board implements Cloneable{
     private Piece[][] board;
     private ArrayList<Piece> black;
     private ArrayList<Piece> white;
@@ -272,7 +272,6 @@ public class Board {
     }
 
     //FUNZIONI PER L'AI; manca gestione delle catture multiple
-
     //Crea una lista con tutte le mosse possibili per il giocatore
     public ArrayList<Move> generateMoves(int turn) {
         ArrayList<Move> listmove = new ArrayList<>();
@@ -317,7 +316,7 @@ public class Board {
                 if (!isInside(landingCol)) continue;
                 if ((getPiece(landingRow, landingCol) != null)) continue;
                 if (canPieceMove(piece, landingRow, landingCol, turn)) {
-                    coordinate.add(new Move(piece, false, landingRow, landingCol));
+                    coordinate.add(new Move(piece, false, landingRow, landingCol, piece.getRow(), piece.getCol()));
                 }
             }
         }
@@ -356,15 +355,12 @@ public class Board {
                 if ((getPiece(enemyRow, enemyCol) == null)) continue;
                 if ((getPiece(enemyRow, enemyCol).getColor() == piece.getColor())) continue;
                 if (canPieceCapture(piece, enemyRow, enemyCol, landingRow, landingCol, turn)) {
-
                     //Simulazione per verificare se ci sono altre possibili mangiate dopo la prima
-
                     //rimozione del nemico mangiato e sposto la pedina in avanti
                     Piece enemy = getPiece(enemyRow, enemyCol);
                     board[enemyRow][enemyCol] = null;
                     piece.setRow(landingRow);
                     piece.setCol(landingCol);
-
                     //Chiamata ricorsiva per vedere se ci sono altre possibili catture
                     //Controlliamo se da questa nuova posizione può mangiare ancora
                     ArrayList<Move> nextMoves = getMoveCapture(piece, turn);
@@ -372,15 +368,14 @@ public class Board {
                     //Se la lista è vuota vuol dire che non può più mangiare
                     if (nextMoves.isEmpty()) {
                         // Aggiungo questa casella come destinazione finale.
-                        Move finalMove = new Move(piece, true, landingRow, landingCol);
+                        Move finalMove = new Move(piece, true, landingRow, landingCol,startrow,startcol);
                         finalMove.addCapturedPiece(enemy);
                         coordinate.add(finalMove);
                     } else {
                         // BIVIO O CONTINUAZIONE: la ricorsione ha trovato la fine della strada
-                        // (o delle strade). Devo riportarle tutte su all'IA.
                         for (Move m : nextMoves) {
                             // Creiamo la mossa atomica che arriva alla destinazione finale
-                            Move atomicMove = new Move(piece, true, m.getRow(), m.getCol());
+                            Move atomicMove = new Move(piece, true, m.getRow(), m.getCol(), startrow, startcol);
                             // Copiamo tutti i pezzi mangiati nei salti successivi futuri
                             atomicMove.getCapturedPieces().addAll(m.getCapturedPieces());
                             // Aggiungiamo il nemico mangiato in QUESTO salto specifico
@@ -432,10 +427,9 @@ public class Board {
     public void undoMove(Move move) {
         Piece piece = move.getPiece();
         // Svuotiamo la casella dove il pezzo era arrivato (endRow, endCol)
-        board[piece.getRow()][piece.getCol()] = null;
+        board[move.getRow()][move.getCol()] = null;
         // Rimettiamo il pezzo nella casella da cui era partito (startRow, startCol)
         board[move.getStartRow()][move.getStartCol()] = piece;
-
         // Riportiamo il pezzo al suo stato originale
         piece.setRow(move.getStartRow());
         piece.setCol(move.getStartCol());
@@ -451,11 +445,49 @@ public class Board {
                 // Re-inseriamo il nemico nelle liste usate dall'evaluator
                 // Se il colore del nemico è bianco (0) va in white, altrimenti in black
                 if (enemy.getColor() == WHITE) {
-                    white.add(enemy);
+                    if (!white.contains(enemy)) white.add(enemy);
                 } else {
-                    black.add(enemy);
+                    if (!black.contains(enemy)) black.add(enemy);
                 }
             }
         }
+    }
+
+    //Necessario per poterlo usare con l'ai altrimenti modifica la board originale
+    @Override
+    public Board clone() {
+        Board clonedBoard = new Board(); // Crea una nuova scacchiera vuota
+        // 1. Svuota le liste create dal costruttore (perché vogliamo riempirle noi)
+        clonedBoard.getWhite().clear();
+        clonedBoard.getBlack().clear();
+
+        // 2. Svuota la matrice
+        for(int i=0; i<8; i++){
+            for(int j=0; j<8; j++){
+                clonedBoard.getBoard()[i][j] = null;
+            }
+        }
+
+        for (Piece p : this.white) {
+            Piece newP = new Piece(p.getColor()); // Nuovo Oggetto!
+            newP.setRow(p.getRow());
+            newP.setCol(p.getCol());
+            newP.setIsKing(p.getisKing());
+
+            // Aggiungi alla nuova scacchiera
+            clonedBoard.getWhite().add(newP);
+            clonedBoard.getBoard()[newP.getRow()][newP.getCol()] = newP;
+        }
+        for (Piece p : this.black) {
+            Piece newP = new Piece(p.getColor());
+            newP.setRow(p.getRow());
+            newP.setCol(p.getCol());
+            newP.setIsKing(p.getisKing());
+
+            clonedBoard.getBlack().add(newP);
+            clonedBoard.getBoard()[newP.getRow()][newP.getCol()] = newP;
+        }
+
+        return clonedBoard;
     }
 }

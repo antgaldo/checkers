@@ -25,10 +25,18 @@ public class Move {
         this.isCapture=isCapture;
         this.row=row;
         this.col=col;
-
         //occorre per undoMove e makeMove, altrimenti non possiamo tornare indietro
         this.startRow = piece.getRow();
         this.startCol = piece.getCol();
+    }
+    // Nuovo costruttore per catture multiple e simulazioni precise
+    public Move(Piece piece, boolean isCapture, int row, int col, int startRow, int startCol) {
+        this.piece = piece;
+        this.isCapture = isCapture;
+        this.row = row;
+        this.col = col;
+        this.startRow = startRow;
+        this.startCol = startCol;
     }
 
     public void addCapturedPiece(Piece p) {

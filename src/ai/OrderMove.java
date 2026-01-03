@@ -13,7 +13,7 @@ public class OrderMove {
     public OrderMove(){}
 
     //Ordiniamo le mosse in base all'euristica in modo tale da velocizzare l'ai
-    public ArrayList<Move> sort(ArrayList<Move> moves){
+    public ArrayList<Move> sortMove(ArrayList<Move> moves){
         ArrayList<Move> ordermoves= new ArrayList<Move>(moves);
         ordermoves.sort((m1, m2) -> Integer.compare(heuristic(m2), heuristic(m1))
         );

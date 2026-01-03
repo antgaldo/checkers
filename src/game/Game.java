@@ -1,5 +1,6 @@
 package game;
 
+import ai.MinMax;
 import gui.ViewBoard;
 import gui.ViewPoint;
 import gui.ViewTable;
@@ -28,6 +29,7 @@ public class Game implements Listener{
         viewboard.setListener(this);
         this.mustcapture=false;
         initGame();
+        playAIMove();
     }
 
     public ViewBoard getViewBoard(){
@@ -48,15 +50,15 @@ public class Game implements Listener{
         viewpoint.setCountPoint("Numero di Bianchi: " + board.getWhite().size() + "\n\nNumero di Neri: " + board.getBlack().size());
     }
 
+    //Serve per l'umano
     public void onPieceClick(Piece piece){
-        if((turn ==0 && piece.getColor()== WHITE) || (turn ==1 && piece.getColor()== BLACK)){
+        if((turn ==1 && piece.getColor()== BLACK)){
             this.selectpiece = piece;
-            //System.out.println("damone");
         } else viewboard.showAlert("","","Sbagliato turno");
     }
 
     public void onBoxClick(int row, int col){
-        if(selectpiece!=null) {
+        if(selectpiece!=null && turn==1) {
             Move move= new Move( row, col);
             if(board.movePiece(move, selectpiece,turn,mustcapture)) {
                 viewboard.viewstart(board);
@@ -69,7 +71,35 @@ public class Game implements Listener{
                 } else {
                     selectpiece = null;
                     mustcapture = board.checkisCapturable(turn);
-                    //System.out.println(mustcapture);
+                    switchTurn();
+                }
+            } else viewboard.showAlert("","","Mossa non valida");
+        }
+    }
+
+    //Funzioni per l'ai
+    private void playAIMove() {
+        Board shadowBoard = this.board.clone();
+        MinMax solver = new MinMax(shadowBoard);
+        Move moveAI = solver.getBestMove(shadowBoard, 6, turn);
+
+        if (moveAI != null) {
+            this.selectpiece = board.getPiece(moveAI.getStartRow(), moveAI.getStartCol());
+            if (this.selectpiece == null) {
+                return;
+            }
+
+            if(board.movePiece(moveAI, selectpiece,turn,mustcapture)) {
+                viewboard.viewstart(board);
+                viewpoint.setCountPoint("Numero di Bianchi: " + board.getWhite().size() + "\n\nNumero di Neri: " + board.getBlack().size());
+                mustcapture=false;
+                //se dopo la mossa la pedina spostata è sotto attacco allora aggiorna lo stato mustcapture
+                //per obbligare l'avversario a mangiare
+                if(board.canCapture(selectpiece,turn) && board.getHasCapture()){
+                    mustcapture = true;
+                } else {
+                    selectpiece = null;
+                    mustcapture = board.checkisCapturable(turn);
                     switchTurn();
                 }
             } else viewboard.showAlert("","","Mossa non valida");
@@ -79,7 +109,14 @@ public class Game implements Listener{
     private void switchTurn(){
         if(turn==0){
             turn=1;
-        } else turn = 0;
+        } else {
+            turn = 0;
+            javafx.application.Platform.runLater(() -> {
+                javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(1000));
+                pause.setOnFinished(e -> playAIMove());
+                pause.play();
+            });
+        }
         viewtable.setTextTurn(turn == 0 ? "Bianco" : "Nero");
     }
 }

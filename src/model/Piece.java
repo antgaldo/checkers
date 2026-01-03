@@ -2,7 +2,7 @@ package model;
 
 import javafx.scene.paint.Color;
 
-public class Piece {
+public class Piece implements Cloneable{
     private int row;
     private int col;
     private Color color;
@@ -49,5 +49,14 @@ public class Piece {
     @Override
     public String toString() {
         return (color == Color.WHITE ? "W" : "B") + " row:" + row + "col" + col + "king" + isking;
+    }
+
+    @Override
+    public Piece clone() {
+        try {
+            return (Piece) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return null;
+        }
     }
 }
