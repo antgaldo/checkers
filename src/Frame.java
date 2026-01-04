@@ -18,7 +18,7 @@ public class Frame extends Application {
         HBox hbox= new HBox(10);
         VBox vbox = new VBox(10);  // 10px di distanza tra i GridPane
         vbox.setPadding(new Insets(20));
-        hbox.getChildren().addAll(game.getViewBoard(),game.getViewPoint());
+        hbox.getChildren().addAll(game.getViewBoard(),game.getViewPoint(),game.getViewMoveAi());
         vbox.getChildren().addAll(game.getViewtable());  // Aggiungi entrambi i GridPane
 
         VBox root = new VBox(20); // Root container per includere HBox e VBox

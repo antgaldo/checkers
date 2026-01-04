@@ -2,6 +2,7 @@ package game;
 
 import ai.MinMax;
 import gui.ViewBoard;
+import gui.ViewMoveAi;
 import gui.ViewPoint;
 import gui.ViewTable;
 import model.Board;
@@ -16,6 +17,8 @@ public class Game implements Listener{
     private ViewBoard viewboard;
     private ViewTable viewtable;
     private ViewPoint viewpoint;
+    private ViewMoveAi viewmoveai;
+    private Move moveiview;
     private int turn;
     private boolean mustcapture;
     private Piece selectpiece;
@@ -25,6 +28,7 @@ public class Game implements Listener{
         this.board= new Board();
         this.viewtable= new ViewTable();
         this.viewpoint= new ViewPoint();
+        this.viewmoveai= new ViewMoveAi();
         this.turn=0;
         viewboard.setListener(this);
         this.mustcapture=false;
@@ -43,11 +47,15 @@ public class Game implements Listener{
     public ViewPoint getViewPoint(){
         return viewpoint;
     }
+    public ViewMoveAi getViewMoveAi(){
+        return viewmoveai;
+    }
 
     public void initGame(){
         viewboard.viewstart(board);
         viewtable.setTextTurn((turn == 0 ? "Bianco" : "Nero"));
         viewpoint.setCountPoint("Numero di Bianchi: " + board.getWhite().size() + "\n\nNumero di Neri: " + board.getBlack().size());
+        viewmoveai.setText("Mosse dell'AI\n");
     }
 
     //Serve per l'umano
@@ -81,7 +89,7 @@ public class Game implements Listener{
     private void playAIMove() {
         Board shadowBoard = this.board.clone();
         MinMax solver = new MinMax(shadowBoard);
-        Move moveAI = solver.getBestMove(shadowBoard, 1, turn);
+        Move moveAI = solver.getBestMove(shadowBoard, 6, turn);
 
         if (moveAI != null) {
             this.selectpiece = board.getPiece(moveAI.getStartRow(), moveAI.getStartCol());
@@ -90,8 +98,13 @@ public class Game implements Listener{
             }
 
             if(board.movePiece(moveAI, selectpiece,turn,mustcapture)) {
+                moveiview = moveAI;
                 viewboard.viewstart(board);
                 viewpoint.setCountPoint("Numero di Bianchi: " + board.getWhite().size() + "\n\nNumero di Neri: " + board.getBlack().size());
+                viewmoveai.appendText("\nRiga: "+ moveiview.getRow() + " - Colonna: " + moveiview.getCol());
+                if(moveAI.getCapturedPieces().size()>0){
+                    viewmoveai.appendText("\nPezzi mangiati dall'AI: "+ moveAI.getCapturedPieces().size() );
+                }
                 selectpiece = null;
                 mustcapture = board.checkisCapturable(turn);
                 switchTurn();

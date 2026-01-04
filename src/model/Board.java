@@ -95,7 +95,7 @@ public class Board implements Cloneable{
                     //se è una pedina normale valuta la direzione , se è damone no
                     int enemyRow = piece.getisKing() ? (piece.getRow() + move.getRow()) / 2 : piece.getRow() + ((turn == 0) ? 1 : -1);
                     int enemyCol = (move.getCol() + piece.getCol()) / 2;
-                    removePiece(turn == 0 ? black : white, enemyRow, enemyCol);
+                    removePiece(white, enemyRow, enemyCol);
                     setBoxNull(enemyRow, enemyCol);
                     hasCapture = true;
                 }
@@ -113,8 +113,9 @@ public class Board implements Cloneable{
             //cancelliamo tutte le pedine catturate
             if(move.getCapturedPieces().size() >0) {
                 for (Piece pcapture : move.getCapturedPieces()) {
-                    // Rimuovi dalla matrice
-                    board[pcapture.getRow()][pcapture.getCol()] = null;
+                    // Rimuovi dalla matrice e dalla lista
+                    setBoxNull(pcapture.getRow(),pcapture.getCol());
+                    removePiece(black, pcapture.getRow(), pcapture.getCol());
                 }
             }
             //cancelliamo la pedina di partenza
