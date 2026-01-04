@@ -87,24 +87,46 @@ public class Board implements Cloneable{
     public boolean movePiece(Move move, Piece piece, int turn, boolean mustcapture) {
         boolean ok = true;
         hasCapture = false;
-        if (this.isMoveLegal(move, piece, turn, mustcapture)) {
-            //se è una mossa cattura allora esegui
-            if ((Math.abs(move.getRow() - piece.getRow()) == 2) && (Math.abs(move.getCol() - piece.getCol()) == 2)) {
-                //se è una pedina normale valuta la direzione , se è damone no
-                int enemyRow = piece.getisKing() ? (piece.getRow() + move.getRow()) / 2 : piece.getRow() + ((turn == 0) ? 1 : -1);
-                int enemyCol = (move.getCol() + piece.getCol()) / 2;
-                removePiece(turn == 0 ? black : white, enemyRow, enemyCol);
-                setBoxNull(enemyRow, enemyCol);
-                hasCapture = true;
+        //Se è umano esegui controlli
+        if(turn==1) {
+            if (this.isMoveLegal(move, piece, turn, mustcapture)) {
+                //se è una mossa cattura allora esegui
+                if ((Math.abs(move.getRow() - piece.getRow()) == 2) && (Math.abs(move.getCol() - piece.getCol()) == 2)) {
+                    //se è una pedina normale valuta la direzione , se è damone no
+                    int enemyRow = piece.getisKing() ? (piece.getRow() + move.getRow()) / 2 : piece.getRow() + ((turn == 0) ? 1 : -1);
+                    int enemyCol = (move.getCol() + piece.getCol()) / 2;
+                    removePiece(turn == 0 ? black : white, enemyRow, enemyCol);
+                    setBoxNull(enemyRow, enemyCol);
+                    hasCapture = true;
+                }
+                //sposta la pedina
+                board[piece.getRow()][piece.getCol()] = null;
+                board[move.getRow()][move.getCol()] = piece;
+                piece.setRow(move.getRow());
+                piece.setCol(move.getCol());
+                //verifica se la pedina è diventata Dama
+                this.promoteToKing(piece, turn);
+            } else ok = false;
+        }
+        //Se è l'AI non c'è bisogno di eseguirli perchè la mossa è gia stata controllata durante la simulazione
+        if(turn==0){
+            //cancelliamo tutte le pedine catturate
+            if(move.getCapturedPieces().size() >0) {
+                for (Piece pcapture : move.getCapturedPieces()) {
+                    // Rimuovi dalla matrice
+                    board[pcapture.getRow()][pcapture.getCol()] = null;
+                }
             }
-            //sposta la pedina
-            board[piece.getRow()][piece.getCol()] = null;
+            //cancelliamo la pedina di partenza
+            board[move.getStartRow()][move.getStartCol()] = null;
+            //spostiamo la pedina
             board[move.getRow()][move.getCol()] = piece;
             piece.setRow(move.getRow());
             piece.setCol(move.getCol());
-            //verifica se la pedina è diventata Dama
+            //verifichiamo se è diventata dama
             this.promoteToKing(piece, turn);
-        } else ok = false;
+            ok=true;
+        }
         return ok;
     }
 

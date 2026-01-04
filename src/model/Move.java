@@ -64,4 +64,9 @@ public class Move {
     public void setPromoted(boolean promoted){
         this.promoted=promoted;
     }
+
+    @Override
+    public String toString(){
+        return "Piece:" + piece + " " + "row" + row + " "  + "col" + col + " "  + "startrow" + startRow + "startCol:" + startCol + "getIsCapture:" + isCapture;
+    }
 }

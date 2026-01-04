@@ -81,7 +81,7 @@ public class Game implements Listener{
     private void playAIMove() {
         Board shadowBoard = this.board.clone();
         MinMax solver = new MinMax(shadowBoard);
-        Move moveAI = solver.getBestMove(shadowBoard, 6, turn);
+        Move moveAI = solver.getBestMove(shadowBoard, 1, turn);
 
         if (moveAI != null) {
             this.selectpiece = board.getPiece(moveAI.getStartRow(), moveAI.getStartCol());
@@ -92,16 +92,9 @@ public class Game implements Listener{
             if(board.movePiece(moveAI, selectpiece,turn,mustcapture)) {
                 viewboard.viewstart(board);
                 viewpoint.setCountPoint("Numero di Bianchi: " + board.getWhite().size() + "\n\nNumero di Neri: " + board.getBlack().size());
-                mustcapture=false;
-                //se dopo la mossa la pedina spostata è sotto attacco allora aggiorna lo stato mustcapture
-                //per obbligare l'avversario a mangiare
-                if(board.canCapture(selectpiece,turn) && board.getHasCapture()){
-                    mustcapture = true;
-                } else {
-                    selectpiece = null;
-                    mustcapture = board.checkisCapturable(turn);
-                    switchTurn();
-                }
+                selectpiece = null;
+                mustcapture = board.checkisCapturable(turn);
+                switchTurn();
             } else viewboard.showAlert("","","Mossa non valida");
         }
     }
