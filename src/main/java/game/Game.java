@@ -9,6 +9,10 @@ import model.Board;
 import model.Move;
 import model.Piece;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.scene.paint.Color.WHITE;
 
@@ -118,7 +122,7 @@ public class Game implements Listener{
         } else {
             turn = 0;
             javafx.application.Platform.runLater(() -> {
-                javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(1000));
+                javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.millis(4000));
                 pause.setOnFinished(e -> playAIMove());
                 pause.play();
             });

@@ -2,10 +2,13 @@ package model;
 
 import javafx.scene.paint.Color;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import static javafx.scene.paint.Color.BLACK;
 import static javafx.scene.paint.Color.WHITE;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Board implements Cloneable{
     private Piece[][] board;
@@ -483,7 +486,6 @@ public class Board implements Cloneable{
         // 1. Svuota le liste create dal costruttore (perché vogliamo riempirle noi)
         clonedBoard.getWhite().clear();
         clonedBoard.getBlack().clear();
-
         // 2. Svuota la matrice
         for(int i=0; i<8; i++){
             for(int j=0; j<8; j++){
