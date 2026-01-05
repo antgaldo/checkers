@@ -8,13 +8,7 @@ import gui.ViewTable;
 import model.Board;
 import model.Move;
 import model.Piece;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-
 import static javafx.scene.paint.Color.BLACK;
-import static javafx.scene.paint.Color.WHITE;
 
 public class Game implements Listener{
     private Board board;

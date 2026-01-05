@@ -20,29 +20,45 @@ public class MoveEvaluator {
         if (board.getBlack().isEmpty()) return 1000000;
         int whiteScore=0;
         int blackScore=0;
+        //Se l'AI ha più scelte del nero aggiungiamo 5 punti per ogni scelta in più
+        whiteScore= 5* (board.generateMoves(0).size()-board.generateMoves(1).size());
+        //Se l'AI ha poche mosse di scelta verrà penalizzata
+        if (board.generateMoves(0).size() < 3) whiteScore-= 150;
+
+        //Diamo un valore maggiore alla dama nelle fasi finali del gioco
+        int totalPieces = board.getWhite().size() + board.getBlack().size();
+        boolean isEndGame = totalPieces < 8;
+        int kingValue = isEndGame ? 500 : 350;
 
         for(Piece piece: board.getWhite()){
             //Per ogni dama assegniamo un valore di 300 punti
-            if(piece.getisKing()) whiteScore+=300;
+            if(piece.getisKing()) whiteScore+=kingValue;
             //Per ogni pedina normale assegniamo 100
             if(!piece.getisKing()) whiteScore+=100;
-            //Per ogni pedina che resta in difesa 30
-            if(piece.getRow()==0) whiteScore+=30;
+            //Per ogni pedina che resta in difesa 70
+            if(piece.getRow()==0) whiteScore+=70;
             //Se la pedina sta proteggendo una dama 30 punti altrimenti 15 punti
             //Se invece sto proteggendo una pedina di spalle da una dama allora 5 punti (quasi impossibile ma non si sa mai)
             whiteScore+= isProtectingSomeone(piece,board,0);
             //Calcoliamo la distanza per diventare dama ed assegniamo 10 punti per ogni riga avanzata
             whiteScore+=getPromotionBonus(piece);
-            //Se hai più scelte del nero aggiungi 50 punti
-            if(board.generateMoves(0).size()>board.generateMoves(1).size())  whiteScore+= 50;
+            //Per ogni pedina sul bordo
+            if (piece.getCol() == 0 || piece.getCol() == 7) {whiteScore += 15;}
+            //per ogni pedina che si trova in posizione centrale
+            if (isCentral(piece)) {whiteScore += 20;}
         }
+
+        blackScore= 5*(board.generateMoves(1).size()-board.generateMoves(0).size());
+        if (board.generateMoves(1).size() < 3) blackScore-= 150;
+
         for(Piece piece: board.getBlack()){
-            if(piece.getisKing()) blackScore+=300;
+            if(piece.getisKing()) blackScore+=kingValue;
             if(!piece.getisKing()) blackScore+=100;
-            if(piece.getRow()==7) blackScore+=30;
+            if(piece.getRow()==7) blackScore+=70;
             blackScore+= isProtectingSomeone(piece,board,1);
             blackScore+=getPromotionBonus(piece);
-            if(board.generateMoves(1).size()>board.generateMoves(0).size())  whiteScore+= 50;
+            if (piece.getCol() == 0 || piece.getCol() == 7) {blackScore += 15;}
+            if (isCentral(piece)) {blackScore += 20;}
         }
 
         return whiteScore-blackScore;
@@ -69,7 +85,7 @@ public class MoveEvaluator {
                 if(friend != null && friend.getColor()==piece.getColor()){
                     //se la pedina che copre è una dama assegna 30 punti altrimenti 15 punti
                     if (dirrow == direction) {
-                        count += friend.getisKing() ? 30 : 15;
+                        count += friend.getisKing() ? 50 : 30;
                     }
                     //se invece mi piazzo avanti sto proteggendo lui (protezione di spalle contro una possibile dama)
                     else {
@@ -93,6 +109,13 @@ public class MoveEvaluator {
             bonus = (7 - row) * pointsPerRow;
         }
         return bonus;
+    }
+
+    //verifica se è in posizioni centrali
+    private boolean isCentral(Piece p) {
+        int r = p.getRow();
+        int c = p.getCol();
+        return (r >= 3 && r <= 4 && c >= 2 && c <= 5);
     }
 
     //verifica se una pedina è dentro la scacchiera
