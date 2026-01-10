@@ -73,14 +73,13 @@ public class MinMax {
         int bestScore = (turn == 0) ? Integer.MIN_VALUE : Integer.MAX_VALUE;
 
         for (Move move : moves) {
-            // 1. Simula la mossa
+            //Simula la mossa
             board.makeMove(move);
             // Nota: scendiamo di 1 profondità e cambiamo turno (1 - turn)
             int currentScore = minimax(board, depth - 1, Integer.MIN_VALUE, Integer.MAX_VALUE, 1 - turn);
-            // 3. Annulla la mossa
+            //Annulla la mossa
             board.undoMove(move);
-
-            // 4. Se questa mossa è la migliore trovata finora, salvatela!
+            //Se questa mossa è la migliore trovata finora, salvala
             if (turn == 0) { // AI è Bianco (MAX)
                 if (currentScore > bestScore) {
                     bestScore = currentScore;
@@ -93,6 +92,7 @@ public class MinMax {
                 }
             }
         }
+
         return bestMove;
     }
 }
